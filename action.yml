@@ -1,0 +1,15 @@
+name: cdash-metric-viz
+description: View clang-tidy output uploaded to CDash as software metrics
+
+inputs:
+  build-directory:
+    description: CMake build directory root
+    required: true
+  
+outputs:
+  url:
+    description: Url to view clang-tidy output software metrics
+
+runs:
+  using: node20
+  main: dist/index.js
