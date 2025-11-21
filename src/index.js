@@ -72,10 +72,10 @@ function run() {
         const cdashEndpoint = getInput('cdash', { required: true });
 
         const extractedId = getBuildIdFromDirectory(directoryToProcess);
-
+        const visUrl = `https://corsa.center/dashboard/explore/project-metrics/metrics/index.html?bid=${buildId}&cdash=${cdashEndpoint}`;
         if (extractedId) {
-          setOutput('build-id', extractedId);
-          info(`Successfully set output 'build-id' to: ${extractedId}`);
+          setOutput('url', visUrl);
+          info(`Successfully set output 'url' to: ${visUrl}`);
         } else {
           // Worst case
           setFailed('Extraction failed for unknown reason.');
