@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
-import { getInput, setOutput, info, setFailed } from '@actions/core';
+import { getInput, setOutput, info, summary, setFailed } from '@actions/core';
 
 /**
  * Given a CMake build directory, either as an absolute or relative path,
@@ -21,7 +21,7 @@ function getBuildIdFromDirectory(baseDirName) {
     info(`Checking root path: ${rootPath}`);
 
     if (!existsSync(rootPath)) {
-        throw new Error(`Provided build directory not found: ${rootPath}`);
+      throw new Error(`Provided build directory not found: ${rootPath}`);
     }
 
     const testDir = path.join(rootPath, "Testing");
@@ -30,11 +30,11 @@ function getBuildIdFromDirectory(baseDirName) {
     const subDirs = entries.filter(entry => entry.isDirectory());
 
     if (subDirs.length === 0) {
-        throw new Error(`Testing directory ${testDir} does not contain enough context to find a build dashboard`);
+      throw new Error(`Testing directory ${testDir} does not contain enough context to find a build dashboard`);
     }
 
     if (subDirs.length > 1) {
-        throw new Error(`Multiple test subdirectories found. Expected exactly one. Found: ${subDirs.map(d => d.name).join(', ')}`);
+      throw new Error(`Multiple test subdirectories found. Expected exactly one. Found: ${subDirs.map(d => d.name).join(', ')}`);
     }
 
     const onlySubDirName = subDirs[0].name;
@@ -46,7 +46,7 @@ function getBuildIdFromDirectory(baseDirName) {
     const xmlFilePath = join(subDirPath, xmlFileName);
 
     if (!existsSync(xmlFilePath)) {
-        throw new Error(`CTest CDash upload confirmation file not found at: ${xmlFilePath}`);
+      throw new Error(`CTest CDash upload confirmation file not found at: ${xmlFilePath}`);
     }
 
     info(`Reading Dashboard upload file: ${xmlFilePath}`);
@@ -57,29 +57,30 @@ function getBuildIdFromDirectory(baseDirName) {
     const match = xmlContent.match(buildIdRegex);
 
     if (match && match[1]) {
-        const buildId = match[1];
-        info(`Extracted Build ID: ${buildId}`);
-        return buildId;
+      const buildId = match[1];
+      info(`Extracted Build ID: ${buildId}`);
+      return buildId;
     } else {
-        throw new Error(`No buildId present in CDash done file.`);
+      throw new Error(`No buildId present in CDash done file.`);
     }
 }
 
 function run() {
     try {
 
-        const directoryToProcess = getInput('build-directory', { required: true });
-        const cdashEndpoint = getInput('cdash', { required: true });
+      const directoryToProcess = getInput('build-directory', { required: true });
+      const cdashEndpoint = getInput('cdash', { required: true });
 
-        const extractedId = getBuildIdFromDirectory(directoryToProcess);
-        const visUrl = `https://corsa.center/dashboard/explore/project-metrics/metrics/index.html?bid=${buildId}&cdash=${cdashEndpoint}`;
-        if (extractedId) {
-          setOutput('url', visUrl);
-          info(`Successfully set output 'url' to: ${visUrl}`);
-        } else {
-          // Worst case
-          setFailed('Extraction failed for unknown reason.');
-        }
+      const extractedId = getBuildIdFromDirectory(directoryToProcess);
+      const visUrl = `https://corsa.center/dashboard/explore/project-metrics/metrics/index.html?bid=${buildId}&cdash=${cdashEndpoint}`;
+      if (extractedId) {
+        setOutput('url', visUrl);
+        info(`Successfully set output 'url' to: ${visUrl}`);
+        summary.addLink('View build metrics', visUrl);
+      } else {
+        // Worst case
+        setFailed('Extraction failed for unknown reason.');
+      }
 
     } catch (error) {
         setFailed(error.message);
