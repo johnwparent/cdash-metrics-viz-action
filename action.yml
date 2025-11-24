@@ -5,6 +5,9 @@ inputs:
   build-directory:
     description: CMake build directory root
     required: true
+  cdash:
+    description: CDash instance to point to
+    required: true
   
 outputs:
   url:
